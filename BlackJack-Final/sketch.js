@@ -1,40 +1,33 @@
 var sketch = function (p) {
 var counter = 0, count = 0;
-var p1;
-//var plot;
-//var points = [];
+var players = [];
+var playerX = [25,500];
+var playerY = [25,25];
+var gameOver = true;
+
 p.setup = function () {
-  p.createCanvas(750, 700);
-
-  //plot = new GPlot(p);
-  // plot.setPos(25, 25);
-
-  // plot.getXAxis().setAxisLabelText("No. Hands");
-  // plot.getYAxis().setAxisLabelText("Total Chips (U$D)");
-  // plot.setTitleText("CPU 1 - example");
+  p.createCanvas(975, 700);
 
   p.frameRate(1);
-  p1 = new player(25,25);
-  
+  for (var i = 0; i <= 1; i++){
+    players[i] = new player(playerX[i],playerY[i],i+1)
+  }
 };
 p.draw = function () {
-  p.background(p.color(210));
-  // plot.defaultDraw();
-  // count++;
-  // if (count <= 100){
-  //   points.push(new GPoint(count, count+10*p.noise(0.1*count + 50)));
-  //   plot.setPoints(points);
-  // }
-  p1.setNewPoint(count++, count);
-  p1.drawGraph();
+  p.background(p.color("green"));   //refresh the background to avoid overlapping
+  
+  for(var i = 0; i <=1; i++){
+    players[counter].setNewPoint(i++, i);
+    players[counter].drawGraph();
+  }
 };
-player = function(x, y){
+player = function(x, y, playerCount){
   var points = [];
   var plot = new GPlot(p);
   plot.setPos(x, y);
   plot.getXAxis().setAxisLabelText("No. Hands");
   plot.getYAxis().setAxisLabelText("Total Chips (U$D)");
-  plot.setTitleText("CPU 1 - example");
+  plot.setTitleText("CPU "+playerCount);
   this.drawCards = function(){
     //code to draw the cards
   }
