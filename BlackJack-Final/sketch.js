@@ -9,12 +9,12 @@ var cardValues = [ //because the card names and suits are loaded in the images, 
 ];
 var gameOver = true, newGame = true;
 var counter = 0, count = 0;
-var deckSize = 52;
-var sliderMax = 5;
+var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100;
 var players = [];
 var playerX = [25,500];
 var playerY = [25,25];
 var chipValues = [1,5,10,25,50];
+var chipTotals = [1000,1000,null];
 var cardback, felt, chipQuintet, handSlider;
 
 p.preload = function(){
@@ -52,6 +52,8 @@ p.draw = function () {
     players[i].drawCards();
     players[i].drawChips();
   }
+
+  //work out an animation regime to display each hand card to card by frame
 };
 
 player = function(x, y, playerCount){
@@ -60,50 +62,102 @@ player = function(x, y, playerCount){
   var chipHand = 0;
   var chipHandPics = [];
   var plot = new GPlot(p);
-  var type;
+  var type, handSum;
+  var count = 0;
   this.x = x;
   this.y = y;
   var cardX = x;
   var cardY = y + 500;
   var betX = x + 100;
   var betY = y + 400;
+  var chipX = betX - 20;
+  var chipY = betY;
   var drawing = false, winningVal = false;
   var position = 0;
   switch(playerCount){
     case 2: type = "dealer"; break;
-    default: type = "cpu"; break;
+    default: type = "CPU"; break;
   }
   plot.setPos(x, y);
   plot.getXAxis().setAxisLabelText("No. Hands");
   plot.getYAxis().setAxisLabelText("Total Chips (U$D)");
   plot.setTitleText("CPU "+playerCount);
+  takeCard(2);
 
   //card functions:
-  this.drawCards = function(){
-    //code to draw the cards
+  this.takeCard = function(noCardsTaken){      //take a number of new cards
+    for (var count = noCardsTaken; count >= 1; count--){
+      cardNo = Math.floor(Math.random()*cardValues.length);                            //pick a random card no.
+      handVals.push(cardValues[cardNo]);
+      hand.push(cardPictures[cardNo]);
+    }
   }
-  this.drawNewCard = function(){
-    //code to animate the drawing of a new card
+
+  this.drawCards = function(){      //code to draw the cards
+    for (count = 0; count < hand.length; count++){ //for all cards in the hand
+
+      if (count === 0 && type == "dealer" && !reveal){//the dealer's first card is flipped over until the player stays
+        p.image(cardback, cardX + count*cardSpacing, cardY);
+        count++;  //move onto the next card
+      }
+      
+      p.image(hand[count], cardX + count*cardSpacing, cardY);  //draw all the other cards
+    }
   }
-  this.calcHandSum = function(){
-    //code to calculate what the hand is at
+
+  this.calcHandSum = function(){      //code to calculate what the hand is at
+    var recalculate = false;
+    var handSum = 0;
+    for (count = 0; count < handVals.length; count++){   //this.handVals undefined here  type error
+      handSum += handVals[count];
+    }
+    if (handSum > 21)   //check the flexible vale of the aces when the handSum is greater than 21
+      recalculate = checkAces(); 
+    
+    if(recalculate){
+      handSum = 0;
+      for (count = 0; count < index; count++){
+        handSum += handVals[count];
+      }
+    }
+    return handSum;
   }
-  this.checkAces = function(){
-    //code to check the flexible value of the ace
+
+  this.checkAces = function(){        //code to check the flexible value of the ace
+    var carrier = false;
+    for (count = 0; count < handVals.length; count++){
+      if (this.handVals[count] == 11){ //if it's an ace
+        this.handVals[count] = 1; //change the value to one
+        carrier = true;
+      }
+    }
+    return carrier;
   }
-  this.upSideDownCard = function(){//return the dealer's facedown card
+
+  this.upSideDownCard = function(){   //return the dealer's facedown card
     return handVals[1];
   }
+
+
   //chip functions:
-  this.drawChips = function(){
-    //p.image(chipQuintet, chipX, chipY);
-    //code to draw how much the player has bet
+  this.drawChips = function(){        //code to draw how much the player has bet
+    p.image(chipQuintet, chipX, chipY);
+    
+    for (count = 0; count < this.chipHandPics.length; count++){
+      image(this.chipHandPics[count], this.betX +cardSpacing*count, this.betY);  //draw the current bet
+    }
   }
-  this.bet = function(chipType){
-    //code to bet a certain chip
+
+  this.bet = function(chipType){    //code to bet a certain chip
+    if (chipHand + chipValues[chipType] <= maxBet){
+      chipHandPics.push(chipPictures[chipType]);   //add to the picture array to be printed
+      chipHand += chipValues[chipType];        //add to the integer of current bet amount
+    }
   }
+
+
   //graph functions:
-  this.drawGraph = function(){//draw the graph
+  this.drawGraph = function(){      //draw the graph
     plot.defaultDraw();
   }
 
@@ -113,14 +167,68 @@ player = function(x, y, playerCount){
     points.push(new GPoint(xCoor,yCoor)); //push a new point onto the last index
     plot.setPoints(points);
   }
+
+  //misc functions:
+  this.winning = function(status){
+    chips += (status) ? chipHand : 0-chipHand;
+  }
 };
 
-cpuRules = function(){
-  //AI code for betting, hitting, and staying for the CPU players
+stay = function(){//code for staying:
+  reveal = true;
+  gameOver = true;
+  for (var count = 0; count <= 2; count++){
+    while(cpuRules(count)) {}             //give them cards until they can't take any more
+  }
+
+  for (count = 0; count <= 1; count++){   //test the other player's cards
+    handSum = players[count].calcHandSum();
+    if (handSum > 21) //if they busted, they lost
+      players[count].winning(false);
+    else if (players[count].handLength() >= 5)
+      players[count].winning(true); //if they have >= 5 cards, they win by 5 card Charlie
+    else if (dealersSum > 21)
+      players[count].winning(true);
+    else if (handSum > dealersSum && dealersSum < 21)
+      players[count].winning(true); //if they beat the dealer, they win
+    else
+      players[count].winning(false);
+  }
 };
 
-testWinning = function(){
-  //code to run when the CPU's have stayed. 
+cpuRules = function(count){              //AI code for betting, hitting, and staying for the CPU players
+  var dealersCard = players[2].upSideDownCard();
+  var sum = players[count].calcHandSum();
+  if (sum < 17){
+    /**
+    ~~~~~~~~~~~~~~AI for betting:~~~~~~~~~~~~~~~~~~~~~~~
+    */
+    switch (dealersCard){
+      case 2 : players[count].bet(4);       break;
+      case 3 : players[count].bet(4);       break;
+      case 4 : players[count].bet(3);       break;
+      case 5 : players[count].bet(3);       break;
+      case 6 : players[count].bet(3);       break;
+      case 7 : players[count].bet(2);       break;
+      case 8 : players[count].bet(2);       break;
+      case 9 : players[count].bet(2);       break;
+      case 10 : players[count].bet(1);      break;
+      case 11 : players[count].bet(1);      break;
+    }
+    /****
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ***/
+    players[count].drawNewCard();
+    return true;
+  }
+  else if (sum >= 17 && sum <= 21){
+    //stay as a good value
+    return false; //setting this as true causes an infinite loop and crash unless the dealer busts
+  }
+  else if (sum > 21){
+    //player has busted
+    return false;
+  }
 };
 
 };
