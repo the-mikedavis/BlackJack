@@ -7,9 +7,9 @@ var cardValues = [ //because the card names and suits are loaded in the images, 
   11,2,3,4,5,6,7,8,9,10,10,10,10, //suit 3
   11,2,3,4,5,6,7,8,9,10,10,10,10, //suit 4
 ];
-var gameOver = true, newGame = true;
+var gameOver = true, newGame = true, reveal = false;
 var counter = 0, count = 0;
-var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 1;
+var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 1, playerInclusion = 1;
 var players = [], graphs = [];
 var hittingStatus = [true, true, true];
 var playerX = [25,500,250];
@@ -46,28 +46,32 @@ p.setup = function () {
 
 p.draw = function () {
   p.image(felt,0,0);                //draw the background felt
+  p.frameRate(handSlider.value());
 
   for(var i = 0; i <=1; i++){       //draw the graphs
-    //players[i].setNewPoint(counter++, counter);
     graphs[i].drawGraph();
     players[i].drawChips();
   }
 
   for(i = 0; i <=2; i++){           //draw the cards and chips
     players[i].drawCards();
+  }
+  
+  for(i = 0; i <= playerInclusion; i++){          //let the computer players bet and draw cards
     hittingStatus[i] = cpuRules(i);
   }
 
-  if (!hittingStatus[0] && !hittingStatus[1]){
-    stay();
-  }
-  
-  if (gameOver){    //start over with a new hand
+  if (gameOver)    //start over with a new hand
     reset();
-  }
+  
+  if (!hittingStatus[0] && !hittingStatus[1] && playerInclusion == 1)
+    playerInclusion = 2;
+  
+  if (!hittingStatus[2])
+    stay();
 };
 
-player = function(x, y, playerCount){
+player = function(x, y, playerCount){//player object
   var hand = [], handVals = [];
   var chipHand = 0;
   var chipHandPics = [];
@@ -81,7 +85,7 @@ player = function(x, y, playerCount){
   var betY = cardY;
   var chipX = x;
   var chipY = betY;
-  var drawing = false, winningVal = false, reveal = false;
+  var drawing = false, winningVal = false;
   var position = 0;
   switch(playerCount){
     case 3: type = "dealer";
@@ -176,9 +180,7 @@ player = function(x, y, playerCount){
 stay = function(){//code for staying:
   reveal = true;
   gameOver = true;
-  // for (var count = 0; count <= 2; count++){
-  //   while(cpuRules(count)) {}             //give them cards until they can't take any more
-  // }
+
   handCount++;
   dealersSum = players[2].calcHandSum();
   for (count = 0; count <= 1; count++){   //test the other player's cards
@@ -196,7 +198,7 @@ stay = function(){//code for staying:
   }
 };
 
-graph = function(x, y, playerNumber){
+graph = function(x, y, playerNumber){//graph object
   var points = [];
   var plot = new GPlot(p);
   plot.setPos(x, y);
@@ -223,9 +225,11 @@ reset = function(){
     players[i] = new player(playerX[i],playerY[i],i+1);
     players[i].takeCard(2);
     players[i].bet(1);
+    hittingStatus[i] = true;
   }
   gameOver = false;
   reveal = false;
+  playerInclusion = 2;
 };
 
 cpuRules = function(count){              //AI code for betting, hitting, and staying for the CPU players
@@ -253,14 +257,10 @@ cpuRules = function(count){              //AI code for betting, hitting, and sta
     players[count].takeCard(1);
     return true;
   }
-  else if (sum >= 17 && sum <= 21){
-    //stay as a good value
-    return false; //setting this as true causes an infinite loop and crash unless the dealer busts
-  }
-  else if (sum > 21){
-    //player has busted
+  else if (sum >= 17 && sum <= 21)     //stay as a good value
     return false;
-  }
+  else if (sum > 21)                   //player has busted
+    return false;
 };
 
 };
