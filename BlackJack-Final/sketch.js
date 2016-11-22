@@ -9,7 +9,7 @@ var cardValues = [ //because the card names and suits are loaded in the images, 
 ];
 var gameOver = true, newGame = true;
 var counter = 0, count = 0;
-var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 0;
+var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 1;
 var players = [], graphs = [];
 var hittingStatus = [true, true, true];
 var playerX = [25,500,250];
@@ -38,8 +38,9 @@ p.setup = function () {
   
   for (var i = 0; i <= 2; i++){
     players[i] = new player(playerX[i],playerY[i], i+1, handCount);
-    graphs[i] = new graph(playerX[i], playerY[i], i+1);
+    graphs[i] = new graph(playerX[i], playerY[i], i);
     players[i].takeCard(2);
+    graphs[i].setNewPoint();
   } //CPU1 i = 1, CPU2 i = 2, dealer i = 3
 };
 
@@ -47,7 +48,7 @@ p.draw = function () {
   p.image(felt,0,0);                //draw the background felt
 
   for(var i = 0; i <=1; i++){       //draw the graphs
-    players[i].setNewPoint(counter++, counter);
+    //players[i].setNewPoint(counter++, counter);
     graphs[i].drawGraph();
     players[i].drawChips();
   }
@@ -201,7 +202,7 @@ graph = function(x, y, playerNumber){
   plot.setPos(x, y);
   plot.getXAxis().setAxisLabelText("No. Hands");
   plot.getYAxis().setAxisLabelText("Total Chips (U$D)");
-  plot.setTitleText("CPU "+playerNumber);
+  plot.setTitleText("CPU "+(playerNumber+1));
 
   //graph functions:
   this.drawGraph = function(){      //draw the graph
@@ -221,6 +222,7 @@ reset = function(){
   for (var i = 0; i <= 2; i++){
     players[i] = new player(playerX[i],playerY[i],i+1);
     players[i].takeCard(2);
+    players[i].bet(1);
   }
   gameOver = false;
   reveal = false;
