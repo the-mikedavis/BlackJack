@@ -9,8 +9,9 @@ var cardValues = [ //because the card names and suits are loaded in the images, 
 ];
 var gameOver = true, newGame = true;
 var counter = 0, count = 0;
-var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100;
+var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 0;
 var players = [];
+var hittingStatus = [true, true, true];
 var playerX = [25,500,250];
 var playerY = [25,25,25];
 var chipValues = [1,5,10,25,50];
@@ -34,11 +35,11 @@ p.setup = function () {
   handSlider = p.createSlider(1,sliderMax,1);
   handSlider.position(playerX[0],75);
   p.frameRate(1);
-  //playerX[2] = p.width/2-5;
+  
   for (var i = 0; i <= 2; i++){
-    players[i] = new player(playerX[i],playerY[i],i+1);
+    players[i] = new player(playerX[i],playerY[i],i+1, handCount);
     players[i].takeCard(2);
-  } //CPU1 i = 1, CPU2 i = 2, dealer = 3
+  } //CPU1 i = 1, CPU2 i = 2, dealer i = 3
 };
 
 p.draw = function () {
@@ -52,9 +53,16 @@ p.draw = function () {
 
   for(i = 0; i <=2; i++){           //draw the cards and chips
     players[i].drawCards();
+    hittingStatus[i] = cpuRules(i);
   }
 
-  //work out an animation regime to display each hand card to card by frame
+  if !(hittingStatus[0] && hittingStatus[1]){
+    stay();
+  }
+  
+  if (gameOver){    //start over with a new hand
+    reset();
+  }
 };
 
 player = function(x, y, playerCount){
@@ -62,6 +70,7 @@ player = function(x, y, playerCount){
   var hand = [], handVals = [];
   var chipHand = 0;
   var chipHandPics = [];
+  var chips = chipTotals[playerCount-1];
   var plot = new GPlot(p);
   var type, handSum;
   var count = 0;
@@ -129,8 +138,8 @@ player = function(x, y, playerCount){
   this.checkAces = function(){        //code to check the flexible value of the ace
     var carrier = false;
     for (count = 0; count < handVals.length; count++){
-      if (handVals[count] == 11){ //if it's an ace
-        handVals[count] = 1; //change the value to one
+      if (handVals[count] == 11){     //if it's an ace
+        handVals[count] = 1;          //change the value to one
         carrier = true;
       }
     }
@@ -165,8 +174,8 @@ player = function(x, y, playerCount){
   }
 
   this.setNewPoint = function(xCoor, yCoor){//set the next point in the graph
-    if (points.length >= 100)//if there are more than 100 points
-      points.shift();        //delete the first point
+    if (points.length >= 100)       //if there are more than 100 points
+      points.shift();               //delete the first point
     points.push(new GPoint(xCoor,yCoor)); //push a new point onto the last index
     plot.setPoints(points);
   }
@@ -180,10 +189,10 @@ player = function(x, y, playerCount){
 stay = function(){//code for staying:
   reveal = true;
   gameOver = true;
-  for (var count = 0; count <= 2; count++){
-    while(cpuRules(count)) {}             //give them cards until they can't take any more
-  }
-
+  // for (var count = 0; count <= 2; count++){
+  //   while(cpuRules(count)) {}             //give them cards until they can't take any more
+  // }
+  handCount++;
   for (count = 0; count <= 1; count++){   //test the other player's cards
     handSum = players[count].calcHandSum();
     if (handSum > 21) //if they busted, they lost
@@ -198,6 +207,15 @@ stay = function(){//code for staying:
       players[count].winning(false);
   }
 };
+
+reset = function(){
+  for (var i = 0; i <= 2; i++){
+    players[i] = new player(playerX[i],playerY[i],i+1);
+    players[i].takeCard(2);
+  }
+  gameOver = false;
+  reveal = false;
+}
 
 cpuRules = function(count){              //AI code for betting, hitting, and staying for the CPU players
   var dealersCard = players[2].upSideDownCard();
