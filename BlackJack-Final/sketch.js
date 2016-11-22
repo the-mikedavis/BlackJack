@@ -11,8 +11,8 @@ var gameOver = true, newGame = true;
 var counter = 0, count = 0;
 var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100;
 var players = [];
-var playerX = [25,500];
-var playerY = [25,25];
+var playerX = [25,500,250];
+var playerY = [25,25,25];
 var chipValues = [1,5,10,25,50];
 var chipTotals = [1000,1000,null];
 var cardback, felt, chipQuintet, handSlider;
@@ -34,10 +34,11 @@ p.setup = function () {
   handSlider = p.createSlider(1,sliderMax,1);
   handSlider.position(playerX[0],75);
   p.frameRate(1);
-
+  //playerX[2] = p.width/2-5;
   for (var i = 0; i <= 2; i++){
-    players[i] = new player(playerX[i],playerY[i],i+1)
-  } //CPU1 i = 0, CPU2 i = 1, dealer = 2
+    players[i] = new player(playerX[i],playerY[i],i+1);
+    players[i].takeCard(2);
+  } //CPU1 i = 1, CPU2 i = 2, dealer = 3
 };
 
 p.draw = function () {
@@ -46,11 +47,11 @@ p.draw = function () {
   for(var i = 0; i <=1; i++){       //draw the graphs
     players[i].setNewPoint(counter++, counter);
     players[i].drawGraph();
+    players[i].drawChips();
   }
 
   for(i = 0; i <=2; i++){           //draw the cards and chips
     players[i].drawCards();
-    players[i].drawChips();
   }
 
   //work out an animation regime to display each hand card to card by frame
@@ -66,23 +67,25 @@ player = function(x, y, playerCount){
   var count = 0;
   this.x = x;
   this.y = y;
-  var cardX = x;
-  var cardY = y + 500;
-  var betX = x + 100;
-  var betY = y + 400;
-  var chipX = betX - 20;
+  var cardX = x + 100;
+  var cardY = y + 350;
+  var betX = x + 300;
+  var betY = cardY;
+  var chipX = x;
   var chipY = betY;
-  var drawing = false, winningVal = false;
+  var drawing = false, winningVal = false, reveal = false;
   var position = 0;
   switch(playerCount){
-    case 2: type = "dealer"; break;
-    default: type = "CPU"; break;
+    case 3: type = "dealer";
+      cardY += 200;
+      break;
+    case 2:
+    case 1: type = "CPU"; break;
   }
   plot.setPos(x, y);
   plot.getXAxis().setAxisLabelText("No. Hands");
   plot.getYAxis().setAxisLabelText("Total Chips (U$D)");
   plot.setTitleText("CPU "+playerCount);
-  takeCard(2);
 
   //card functions:
   this.takeCard = function(noCardsTaken){      //take a number of new cards
@@ -126,8 +129,8 @@ player = function(x, y, playerCount){
   this.checkAces = function(){        //code to check the flexible value of the ace
     var carrier = false;
     for (count = 0; count < handVals.length; count++){
-      if (this.handVals[count] == 11){ //if it's an ace
-        this.handVals[count] = 1; //change the value to one
+      if (handVals[count] == 11){ //if it's an ace
+        handVals[count] = 1; //change the value to one
         carrier = true;
       }
     }
@@ -143,8 +146,8 @@ player = function(x, y, playerCount){
   this.drawChips = function(){        //code to draw how much the player has bet
     p.image(chipQuintet, chipX, chipY);
     
-    for (count = 0; count < this.chipHandPics.length; count++){
-      image(this.chipHandPics[count], this.betX +cardSpacing*count, this.betY);  //draw the current bet
+    for (count = 0; count < chipHandPics.length; count++){
+      p.image(chipHandPics[count], betX +cardSpacing*count, betY);  //draw the current bet
     }
   }
 
@@ -204,16 +207,16 @@ cpuRules = function(count){              //AI code for betting, hitting, and sta
     ~~~~~~~~~~~~~~AI for betting:~~~~~~~~~~~~~~~~~~~~~~~
     */
     switch (dealersCard){
-      case 2 : players[count].bet(4);       break;
-      case 3 : players[count].bet(4);       break;
-      case 4 : players[count].bet(3);       break;
-      case 5 : players[count].bet(3);       break;
-      case 6 : players[count].bet(3);       break;
-      case 7 : players[count].bet(2);       break;
-      case 8 : players[count].bet(2);       break;
-      case 9 : players[count].bet(2);       break;
-      case 10 : players[count].bet(1);      break;
-      case 11 : players[count].bet(1);      break;
+      case 2  :
+      case 3  : players[count].bet(4);       break;
+      case 4  :
+      case 5  :
+      case 6  : players[count].bet(3);       break;
+      case 7  :
+      case 8  :
+      case 9  : players[count].bet(2);       break;
+      case 10 :
+      case 11 : players[count].bet(1);       break;
     }
     /****
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
