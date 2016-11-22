@@ -56,7 +56,7 @@ p.draw = function () {
     hittingStatus[i] = cpuRules(i);
   }
 
-  if !(hittingStatus[0] && hittingStatus[1]){
+  if (!hittingStatus[0] && !hittingStatus[1]){
     stay();
   }
   
@@ -124,11 +124,11 @@ player = function(x, y, playerCount){
       handSum += handVals[count];
     }
     if (handSum > 21)   //check the flexible vale of the aces when the handSum is greater than 21
-      recalculate = checkAces(); 
+      recalculate = this.checkAces(); 
     
     if(recalculate){
       handSum = 0;
-      for (count = 0; count < index; count++){
+      for (count = 0; count < handVals.length; count++){
         handSum += handVals[count];
       }
     }
@@ -184,6 +184,9 @@ player = function(x, y, playerCount){
   this.winning = function(status){
     chips += (status) ? chipHand : 0-chipHand;
   }
+  this.handLength = function(){
+    return hand.length;
+  }
 };
 
 stay = function(){//code for staying:
@@ -193,6 +196,7 @@ stay = function(){//code for staying:
   //   while(cpuRules(count)) {}             //give them cards until they can't take any more
   // }
   handCount++;
+  dealersSum = players[2].calcHandSum();
   for (count = 0; count <= 1; count++){   //test the other player's cards
     handSum = players[count].calcHandSum();
     if (handSum > 21) //if they busted, they lost
@@ -239,7 +243,7 @@ cpuRules = function(count){              //AI code for betting, hitting, and sta
     /****
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ***/
-    players[count].drawNewCard();
+    players[count].takeCard(1);
     return true;
   }
   else if (sum >= 17 && sum <= 21){
