@@ -7,7 +7,7 @@ var cardValues = [ //because the card names and suits are loaded in the images, 
   11,2,3,4,5,6,7,8,9,10,10,10,10, //suit 3
   11,2,3,4,5,6,7,8,9,10,10,10,10, //suit 4
 ];
-var gameOver = true, newGame = true, reveal = false;
+var gameOver = true, newGame = true, reveal = false, drawBool = true;
 var counter = 0, count = 0;
 var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 1, playerInclusion = 1;
 var players = [], graphs = [];
@@ -45,12 +45,16 @@ p.setup = function () {
 };
 
 p.draw = function () {
+  if (drawBool){
+  
   p.image(felt,0,0);                //draw the background felt
   p.frameRate(handSlider.value());
 
   for(var i = 0; i <=1; i++){       //draw the graphs
     graphs[i].drawGraph();
     players[i].drawChips();
+    if (chipTotals[i] <= 0)
+      drawBool = false;
   }
 
   for(i = 0; i <=2; i++){           //draw the cards and chips
@@ -69,6 +73,8 @@ p.draw = function () {
   
   if (!hittingStatus[2])
     stay();
+
+  }
 };
 
 player = function(x, y, playerCount){//player object
