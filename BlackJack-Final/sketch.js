@@ -10,7 +10,7 @@ var cardValues = [ //because the card names and suits are loaded in the images, 
 var gameOver = true, newGame = true;
 var counter = 0, count = 0;
 var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 0;
-var players = [];
+var players = [], graphs = [];
 var hittingStatus = [true, true, true];
 var playerX = [25,500,250];
 var playerY = [25,25,25];
@@ -37,7 +37,8 @@ p.setup = function () {
   p.frameRate(1);
   
   for (var i = 0; i <= 2; i++){
-    players[i] = new player(playerX[i],playerY[i],i+1, handCount);
+    players[i] = new player(playerX[i],playerY[i], i+1, handCount);
+    graphs[i] = new graph(playerX[i], playerY[i], i+1);
     players[i].takeCard(2);
   } //CPU1 i = 1, CPU2 i = 2, dealer i = 3
 };
@@ -47,7 +48,7 @@ p.draw = function () {
 
   for(var i = 0; i <=1; i++){       //draw the graphs
     players[i].setNewPoint(counter++, counter);
-    players[i].drawGraph();
+    graphs[i].drawGraph();
     players[i].drawChips();
   }
 
@@ -66,12 +67,9 @@ p.draw = function () {
 };
 
 player = function(x, y, playerCount){
-  var points = [];
   var hand = [], handVals = [];
   var chipHand = 0;
   var chipHandPics = [];
-  var chips = chipTotals[playerCount-1];
-  var plot = new GPlot(p);
   var type, handSum;
   var count = 0;
   this.x = x;
@@ -91,10 +89,7 @@ player = function(x, y, playerCount){
     case 2:
     case 1: type = "CPU"; break;
   }
-  plot.setPos(x, y);
-  plot.getXAxis().setAxisLabelText("No. Hands");
-  plot.getYAxis().setAxisLabelText("Total Chips (U$D)");
-  plot.setTitleText("CPU "+playerCount);
+  
 
   //card functions:
   this.takeCard = function(noCardsTaken){      //take a number of new cards
@@ -167,22 +162,10 @@ player = function(x, y, playerCount){
     }
   }
 
-
-  //graph functions:
-  this.drawGraph = function(){      //draw the graph
-    plot.defaultDraw();
-  }
-
-  this.setNewPoint = function(xCoor, yCoor){//set the next point in the graph
-    if (points.length >= 100)       //if there are more than 100 points
-      points.shift();               //delete the first point
-    points.push(new GPoint(xCoor,yCoor)); //push a new point onto the last index
-    plot.setPoints(points);
-  }
-
   //misc functions:
   this.winning = function(status){
-    chips += (status) ? chipHand : 0-chipHand;
+    chipTotals[playerCount-1] += (status) ? chipHand : 0-chipHand;
+    graphs[playerCount-1].setNewPoint();
   }
   this.handLength = function(){
     return hand.length;
@@ -212,6 +195,28 @@ stay = function(){//code for staying:
   }
 };
 
+graph = function(x, y, playerNumber){
+  var points = [];
+  var plot = new GPlot(p);
+  plot.setPos(x, y);
+  plot.getXAxis().setAxisLabelText("No. Hands");
+  plot.getYAxis().setAxisLabelText("Total Chips (U$D)");
+  plot.setTitleText("CPU "+playerNumber);
+
+  //graph functions:
+  this.drawGraph = function(){      //draw the graph
+    plot.defaultDraw();
+  }
+
+  this.setNewPoint = function(){//set the next point in the graph
+    if (points.length >= 100)       //if there are more than 100 points
+      points.shift();               //delete the first point
+    points.push(new GPoint(handCount,chipTotals[playerNumber])); //push a new point onto the last index
+    plot.setPoints(points);
+  }
+
+};
+
 reset = function(){
   for (var i = 0; i <= 2; i++){
     players[i] = new player(playerX[i],playerY[i],i+1);
@@ -219,7 +224,7 @@ reset = function(){
   }
   gameOver = false;
   reveal = false;
-}
+};
 
 cpuRules = function(count){              //AI code for betting, hitting, and staying for the CPU players
   var dealersCard = players[2].upSideDownCard();
