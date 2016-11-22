@@ -14,6 +14,7 @@ var sliderMax = 5;
 var players = [];
 var playerX = [25,500];
 var playerY = [25,25];
+var chipValues = [1,5,10,25,50];
 var cardback, felt, chipQuintet, handSlider;
 
 p.preload = function(){
@@ -31,7 +32,7 @@ p.preload = function(){
 p.setup = function () {
   p.createCanvas(975, 800);
   handSlider = p.createSlider(1,sliderMax,1);
-  handSlider.position(playerX[0],20);
+  handSlider.position(playerX[0],75);
   p.frameRate(1);
 
   for (var i = 0; i <= 2; i++){
@@ -43,7 +44,7 @@ p.draw = function () {
   p.image(felt,0,0);                //draw the background felt
 
   for(var i = 0; i <=1; i++){       //draw the graphs
-    players[i].setNewPoint(i++, i);
+    players[i].setNewPoint(counter++, counter);
     players[i].drawGraph();
   }
 
@@ -90,12 +91,12 @@ player = function(x, y, playerCount){
   this.checkAces = function(){
     //code to check the flexible value of the ace
   }
-  this.upSideDownCard = function{//return the dealer's facedown card
+  this.upSideDownCard = function(){//return the dealer's facedown card
     return handVals[1];
   }
   //chip functions:
   this.drawChips = function(){
-    image(chipQuintet, ***, ***);
+    //p.image(chipQuintet, chipX, chipY);
     //code to draw how much the player has bet
   }
   this.bet = function(chipType){
@@ -120,10 +121,6 @@ cpuRules = function(){
 
 testWinning = function(){
   //code to run when the CPU's have stayed. 
-};
-
-rotationAnimation = function(){
-
 };
 
 };
