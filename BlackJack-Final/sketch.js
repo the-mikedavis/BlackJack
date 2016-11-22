@@ -12,6 +12,7 @@ var counter = 0, count = 0;
 var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 1, playerInclusion = 1;
 var players = [], graphs = [];
 var hittingStatus = [true, true, true];
+var alive = [true, true, true];
 var playerX = [25,500,250];
 var playerY = [25,25,25];
 var chipValues = [1,5,10,25,50];
@@ -45,37 +46,89 @@ p.setup = function () {
 };
 
 p.draw = function () {
-  if (drawBool){
-  
-  p.image(felt,0,0);                //draw the background felt
-  p.frameRate(handSlider.value());
+  //if (players[0].getAlive() && players[1].getAlive()){
+  if (alive[0] && alive[1]){
+    //if all players are in the game
+    drawBackground();
+    playTheGame(0);
 
-  for(var i = 0; i <=1; i++){       //draw the graphs
-    graphs[i].drawGraph();
-    players[i].drawChips();
+    for(var i = 0; i <=1; i++){
     if (chipTotals[i] <= 0)
-      drawBool = false;
+      alive[i] = false;
+        //players[i].setAlive(false);
+        
+    }
   }
-
-  for(i = 0; i <=2; i++){           //draw the cards and chips
-    players[i].drawCards();
+  //else if (!players[0].getAlive() && players[1].getAlive()){
+  else if (!alive[0] && alive[1]){
+    //if CPU1 has run out of chips (is out of the game)
+    drawBackground();
+    playTheGame(1);//play the game without player 0
+    if (chipTotals[1] <= 0)
+      //players[1].setAlive(false);
+      alive[1] = false;
   }
-  
-  for(i = 0; i <= playerInclusion; i++){          //let the computer players bet and draw cards
-    hittingStatus[i] = cpuRules(i);
+  //else if (!players[1].getAlive() && players[0].getAlive()){
+  else if (!alive[1] && alive[0]){
+    //if CPU2 has run out of chips (is out of the game)
+    drawBackground();
+    playTheGame(2);
+    if (chipTotals[0] <= 0)
+      //players[0].setAlive(false);
+      alive[0] = false;
   }
-
-  if (gameOver)    //start over with a new hand
-    reset();
-  
-  if (!hittingStatus[0] && !hittingStatus[1] && playerInclusion == 1)
-    playerInclusion = 2;
-  
-  if (!hittingStatus[2])
-    stay();
-
+  else{
+    //if both CPUs are out of chips (are out of the game)
+    drawBackground();
+    playTheGame(3);//just draws the graphs
   }
 };
+
+//draw simplification methods:
+drawBackground = function(){//all background elements
+  p.image(felt,0,0);
+  p.frameRate(handSlider.value());
+};
+playTheGame = function(whichPlayer){//all elements of the game which are constant
+  for (var i = 0; i <= 1; i++)
+    graphs[i].drawGraph();
+
+  switch(whichPlayer){
+    case 0 :
+    case 1 :
+      for (i = whichPlayer; i <= 2; i++)
+        players[i].drawCards();
+      
+      for (i = whichPlayer; i <= 1; i++){
+        players[i].drawChips();
+      }
+      for (i = whichPlayer; i <= playerInclusion; i++)
+        hittingStatus[i] = cpuRules(i);
+      if (!hittingStatus[0] && !hittingStatus[1] && playerInclusion == 1)
+        playerInclusion = 2;
+      if (gameOver)//start over with a new hand
+        reset();
+      if (!hittingStatus[2])
+        stay();
+        console.log("I'm in case 0 or 1");
+      break;
+    case 2 :
+      players[0].drawCards();
+      players[2].drawCards();
+      players[0].drawChips();
+      for (i = 0; i <= playerInclusion; i++)//will only activate on 0 and 2
+        hittingStatus[i] = cpuRules(i++);
+      if (!hittingStatus[0] && playerInclusion == 1)
+        playerInclusion = 2;
+      if (gameOver)
+        reset();
+      if (!hittingStatus[2])
+        stay();
+        console.log("I'm in case 2")
+      break;
+    default : console.log("I'm in the default case"); break;
+  }
+}
 
 player = function(x, y, playerCount){//player object
   var hand = [], handVals = [];
@@ -93,6 +146,7 @@ player = function(x, y, playerCount){//player object
   var chipY = betY;
   var drawing = false, winningVal = false;
   var position = 0;
+  this.alive = alive[playerCount-1];
   switch(playerCount){
     case 3: type = "dealer";
       cardY += 200;
@@ -175,8 +229,10 @@ player = function(x, y, playerCount){//player object
 
   //misc functions:
   this.winning = function(status){
-    chipTotals[playerCount-1] += (status) ? chipHand : 0-chipHand;
-    graphs[playerCount-1].setNewPoint();
+    if (this.alive === true){
+      chipTotals[playerCount-1] += (status) ? chipHand : 0-chipHand;
+      graphs[playerCount-1].setNewPoint();
+    }
   }
   this.handLength = function(){
     return hand.length;
