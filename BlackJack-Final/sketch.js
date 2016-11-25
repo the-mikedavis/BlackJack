@@ -13,6 +13,7 @@ var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 1,
 var players = [], graphs = [];
 var hittingStatus = [true, true, true];
 var alive = [true, true, true];
+var playerArray = ["Active Fund", "Passive Fund", "Dealer"];
 var playerX = [25,500,250];
 var playerY = [25,25,25];
 var chipValues = [1,5,10,25,50];
@@ -38,7 +39,7 @@ p.setup = function () {
   p.frameRate(1);
   
   for (var i = 0; i <= 2; i++){
-    players[i] = new player(playerX[i],playerY[i], i+1, handCount);
+    players[i] = new player(playerX[i],playerY[i], i, playerArray[i]);
     graphs[i] = new graph(playerX[i], playerY[i], i);
     players[i].takeCard(2);
     graphs[i].setNewPoint();
@@ -46,40 +47,30 @@ p.setup = function () {
 };
 
 p.draw = function () {
-  //if (players[0].getAlive() && players[1].getAlive()){
+  drawBackground();
   if (alive[0] && alive[1]){
     //if all players are in the game
-    drawBackground();
     playTheGame(0);
 
     for(var i = 0; i <=1; i++){
     if (chipTotals[i] <= 0)
       alive[i] = false;
-        //players[i].setAlive(false);
-        
     }
   }
-  //else if (!players[0].getAlive() && players[1].getAlive()){
   else if (!alive[0] && alive[1]){
     //if CPU1 has run out of chips (is out of the game)
-    drawBackground();
     playTheGame(1);//play the game without player 0
     if (chipTotals[1] <= 0)
-      //players[1].setAlive(false);
       alive[1] = false;
   }
-  //else if (!players[1].getAlive() && players[0].getAlive()){
   else if (!alive[1] && alive[0]){
     //if CPU2 has run out of chips (is out of the game)
-    drawBackground();
     playTheGame(2);
     if (chipTotals[0] <= 0)
-      //players[0].setAlive(false);
       alive[0] = false;
   }
   else{
     //if both CPUs are out of chips (are out of the game)
-    drawBackground();
     playTheGame(3);//just draws the graphs
   }
 };
@@ -110,7 +101,6 @@ playTheGame = function(whichPlayer){//all elements of the game which are constan
         reset();
       if (!hittingStatus[2])
         stay();
-        console.log("I'm in case 0 or 1");
       break;
     case 2 :
       players[0].drawCards();
@@ -124,17 +114,17 @@ playTheGame = function(whichPlayer){//all elements of the game which are constan
         reset();
       if (!hittingStatus[2])
         stay();
-        console.log("I'm in case 2")
       break;
-    default : console.log("I'm in the default case"); break;
+    default : break;
   }
 }
 
-player = function(x, y, playerCount){//player object
+player = function(x, y, playerCount, type){//player object
   var hand = [], handVals = [];
   var chipHand = 0;
   var chipHandPics = [];
-  var type, handSum;
+  var handSum;
+  this.type = type;
   var count = 0;
   this.x = x;
   this.y = y;
@@ -146,13 +136,13 @@ player = function(x, y, playerCount){//player object
   var chipY = betY;
   var drawing = false, winningVal = false;
   var position = 0;
-  this.alive = alive[playerCount-1];
-  switch(playerCount){
-    case 3: type = "dealer";
+  this.alive = alive[playerCount];
+  switch(type){
+    case "Dealer" :
       cardY += 200;
       break;
     case 2:
-    case 1: type = "CPU"; break;
+    case 1: break;
   }
   
 
@@ -168,7 +158,7 @@ player = function(x, y, playerCount){//player object
   this.drawCards = function(){      //code to draw the cards
     for (count = 0; count < hand.length; count++){ //for all cards in the hand
 
-      if (count === 0 && type == "dealer" && !reveal){//the dealer's first card is flipped over until the player stays
+      if (count === 0 && type == "Dealer" && !reveal){//the dealer's first card is flipped over until the player stays
         p.image(cardback, cardX + count*cardSpacing, cardY);
         count++;  //move onto the next card
       }
@@ -230,12 +220,15 @@ player = function(x, y, playerCount){//player object
   //misc functions:
   this.winning = function(status){
     if (this.alive === true){
-      chipTotals[playerCount-1] += (status) ? chipHand : 0-chipHand;
-      graphs[playerCount-1].setNewPoint();
+      chipTotals[playerCount] += (status) ? chipHand : 0-chipHand;
+      graphs[playerCount].setNewPoint();
     }
   }
   this.handLength = function(){
     return hand.length;
+  }
+  this.getType = function(){
+    return type;
   }
 };
 
@@ -266,7 +259,7 @@ graph = function(x, y, playerNumber){//graph object
   plot.setPos(x, y);
   plot.getXAxis().setAxisLabelText("No. Hands");
   plot.getYAxis().setAxisLabelText("Total Chips (U$D)");
-  plot.setTitleText("CPU "+(playerNumber+1));
+  plot.setTitleText(players[playerNumber].getType());
 
   //graph functions:
   this.drawGraph = function(){      //draw the graph
@@ -284,7 +277,7 @@ graph = function(x, y, playerNumber){//graph object
 
 reset = function(){
   for (var i = 0; i <= 2; i++){
-    players[i] = new player(playerX[i],playerY[i],i+1);
+    players[i] = new player(playerX[i],playerY[i],i, playerArray[i]);
     players[i].takeCard(2);
     players[i].bet(1);
     hittingStatus[i] = true;
@@ -297,29 +290,48 @@ reset = function(){
 cpuRules = function(count){              //AI code for betting, hitting, and staying for the CPU players
   var dealersCard = players[2].upSideDownCard();
   var sum = players[count].calcHandSum();
-  if (sum < 17){
-    /**
-    ~~~~~~~~~~~~~~AI for betting:~~~~~~~~~~~~~~~~~~~~~~~
-    */
-    switch (dealersCard){
-      case 2  :
-      case 3  : players[count].bet(4);       break;
-      case 4  :
-      case 5  :
-      case 6  : players[count].bet(3);       break;
-      case 7  :
-      case 8  :
-      case 9  : players[count].bet(2);       break;
-      case 10 :
-      case 11 : players[count].bet(1);       break;
+  if (count == 0){//active fund
+    if (sum < 17){
+      //AI for the active fund
+      switch (dealersCard){
+        case 2  :
+        case 3  : players[count].bet(4);       break;
+        case 4  :
+        case 5  :
+        case 6  : players[count].bet(3);       break;
+        case 7  :
+        case 8  :
+        case 9  : players[count].bet(2);       break;
+        case 10 :
+        case 11 : players[count].bet(1);       break;
+      }
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      players[count].takeCard(1);
+      return true;
     }
-    /****
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ***/
-    players[count].takeCard(1);
-    return true;
   }
-  else if (sum >= 17 && sum <= 21)     //stay as a good value
+  else if (count == 1){//passive fund
+    if (sum < 17){
+      //AI for the passive fund
+      switch (dealersCard){
+        case 2  : players[count].bet(2);      break;
+        case 3  :
+        case 4  :
+        case 5  :
+        case 6  : players[count].bet(1);       break;
+        case 7  :
+        case 8  :
+        case 9  : 
+        case 10 :
+        case 11 :
+        default : break;
+      }
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      players[count].takeCard(1);
+      return true;
+    }
+  }
+  if (sum >= 17 && sum <= 21)     //stay as a good value
     return false;
   else if (sum > 21)                   //player has busted
     return false;
