@@ -9,7 +9,7 @@ var cardValues = [ //because the card names and suits are loaded in the images, 
 ];
 var gameOver = true, newGame = true, reveal = false, drawBool = true;
 var counter = 0, count = 0;
-var deckSize = 52, sliderMax = 5, cardSpacing = 20, maxBet = 100, handCount = 1, playerInclusion = 1;
+var deckSize = 52, sliderMax = 10, cardSpacing = 20, maxBet = 100, handCount = 1, playerInclusion = 1;
 var players = [], graphs = [];
 var hittingStatus = [true, true, true];
 var alive = [true, true, true];
@@ -35,7 +35,7 @@ p.preload = function(){
 p.setup = function () {
   p.createCanvas(975, 800);
   handSlider = p.createSlider(1,sliderMax,1);
-  handSlider.position(playerX[0],75);
+  handSlider.position(playerX[0],20);
   p.frameRate(1);
   
   for (var i = 0; i <= 2; i++){
@@ -43,7 +43,7 @@ p.setup = function () {
     graphs[i] = new graph(playerX[i], playerY[i], i);
     players[i].takeCard(2);
     graphs[i].setNewPoint();
-  } //CPU1 i = 1, CPU2 i = 2, dealer i = 3
+  } //CPU1 i = 0, CPU2 i = 1, dealer i = 2
 };
 
 p.draw = function () {
