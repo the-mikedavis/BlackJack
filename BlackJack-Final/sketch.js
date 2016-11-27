@@ -1,7 +1,7 @@
 var sketch = function (p) {
 var cardPictures = [];
 var chipPictures = [];
-var cardValues = [ //because the card names and suits are loaded in the images, I don't need  a suit and name list, only values & pictures
+var cardValues = [
   11,2,3,4,5,6,7,8,9,10,10,10,10, //suit 1
   11,2,3,4,5,6,7,8,9,10,10,10,10, //suit 2
   11,2,3,4,5,6,7,8,9,10,10,10,10, //suit 3
@@ -9,7 +9,8 @@ var cardValues = [ //because the card names and suits are loaded in the images, 
 ];
 var gameOver = true, newGame = true, reveal = false, drawBool = true;
 var counter = 0, count = 0;
-var deckSize = 52, sliderMax = 10, cardSpacing = 20, maxBet = 100, handCount = 1, playerInclusion = 1;
+var deckSize = 52, sliderMax = 10, cardSpacing = 20;
+var maxBet = 100, handCount = 1, playerInclusion = 1;
 var players = [], graphs = [];
 var hittingStatus = [true, true, true];
 var alive = [true, true, true];
@@ -149,7 +150,7 @@ player = function(x, y, playerCount, type){//player object
   //card functions:
   this.takeCard = function(noCardsTaken){      //take a number of new cards
     for (var count = noCardsTaken; count >= 1; count--){
-      cardNo = Math.floor(Math.random()*cardValues.length);                            //pick a random card no.
+      cardNo = Math.floor(Math.random()*cardValues.length);//pick a random card no.
       handVals.push(cardValues[cardNo]);
       hand.push(cardPictures[cardNo]);
     }
@@ -158,7 +159,8 @@ player = function(x, y, playerCount, type){//player object
   this.drawCards = function(){      //code to draw the cards
     for (count = 0; count < hand.length; count++){ //for all cards in the hand
 
-      if (count === 0 && type == "Dealer" && !reveal){//the dealer's first card is flipped over until the player stays
+      if (count === 0 && type == "Dealer" && !reveal){
+      //the dealer's first card is flipped over until the player stays
         p.image(cardback, cardX + count*cardSpacing, cardY);
         count++;  //move onto the next card
       }
@@ -170,10 +172,10 @@ player = function(x, y, playerCount, type){//player object
   this.calcHandSum = function(){      //code to calculate what the hand is at
     var recalculate = false;
     var handSum = 0;
-    for (count = 0; count < handVals.length; count++){   //this.handVals undefined here  type error
+    for (count = 0; count < handVals.length; count++){
       handSum += handVals[count];
     }
-    if (handSum > 21)   //check the flexible vale of the aces when the handSum is greater than 21
+    if (handSum > 21)   //check the flexible vale of the aces
       recalculate = this.checkAces(); 
     
     if(recalculate){
@@ -269,7 +271,8 @@ graph = function(x, y, playerNumber){//graph object
   this.setNewPoint = function(){//set the next point in the graph
     if (points.length >= 100)       //if there are more than 100 points
       points.shift();               //delete the first point
-    points.push(new GPoint(handCount,chipTotals[playerNumber])); //push a new point onto the last index
+    points.push(new GPoint(handCount,chipTotals[playerNumber])); 
+    //push a new point onto the last index
     plot.setPoints(points);
   }
 
@@ -287,7 +290,7 @@ reset = function(){
   playerInclusion = 2;
 };
 
-cpuRules = function(count){              //AI code for betting, hitting, and staying for the CPU players
+cpuRules = function(count){              
   var dealersCard = players[2].upSideDownCard();
   var sum = players[count].calcHandSum();
   if (count == 0){//active fund
