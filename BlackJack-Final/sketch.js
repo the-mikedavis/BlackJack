@@ -34,10 +34,14 @@ p.preload = function(){
 };
 
 p.setup = function () {
-  p.createCanvas(975, 800);
+  p.createCanvas(1920, 800);  //width of the felt image
   handSlider = p.createSlider(1,sliderMax,1);
   handSlider.position(playerX[0],20);
   p.frameRate(1);
+
+  //change the X values of the players to match the window size
+  playerX[1] = (p.windowWidth > 900) ? p.windowWidth - 500 : 500;
+  playerX[2] = p.windowWidth / 2 - 150;
   
   for (var i = 0; i <= 2; i++){
     players[i] = new player(playerX[i],playerY[i], i, playerArray[i]);
@@ -142,8 +146,7 @@ player = function(x, y, playerCount, type){//player object
     case "Dealer" :
       cardY += 200;
       break;
-    case 2:
-    case 1: break;
+    default : break;
   }
   
 
@@ -295,20 +298,10 @@ cpuRules = function(count){
   var sum = players[count].calcHandSum();
   if (count == 0){//active fund
     if (sum < 17){
-      //AI for the active fund
-      switch (dealersCard){
-        case 2  :
-        case 3  : players[count].bet(4);       break;
-        case 4  :
-        case 5  :
-        case 6  : players[count].bet(3);       break;
-        case 7  :
-        case 8  :
-        case 9  : players[count].bet(2);       break;
-        case 10 :
-        case 11 : players[count].bet(1);       break;
-      }
-      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      players[count].bet(mapSums(sum, dealersCard));
+      seed = p.floor(Math.random()*4);
+      if (seed == 0)
+        players[count].bet(mapSums(sum, dealersCard))
       players[count].takeCard(1);
       return true;
     }
@@ -338,6 +331,21 @@ cpuRules = function(count){
     return false;
   else if (sum > 21)                   //player has busted
     return false;
+};
+
+mapSums = function(hand, dealer){
+  var total = hand + dealer;
+  //maximum is 11 + 16 = 27, minimum is 4 + 2 = 6
+  if (total <= 10)
+    return 4;
+  else if (total <= 15)
+    return 3;
+  else if (total <= 20)
+    return 2;
+  else if (total <= 25)
+    return 1;
+  else
+    return 0;
 };
 
 };
