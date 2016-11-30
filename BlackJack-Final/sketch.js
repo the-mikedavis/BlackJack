@@ -259,6 +259,8 @@ stay = function(){//code for staying:
 };
 
 graph = function(x, y, playerNumber){//graph object
+  this.x = x;
+  this.y = y;
   var points = [];
   var plot = new GPlot(p);
   plot.setPos(x, y);
@@ -279,9 +281,15 @@ graph = function(x, y, playerNumber){//graph object
     plot.setPoints(points);
   }
 
+  this.setX = function(x){
+    plot.setPos(x,this.y);
+  }
 };
 
 reset = function(){
+  playerX[1] = (p.windowWidth > 900) ? p.windowWidth - 500 : 500;
+  graphs[1].setX(playerX[1]);
+  playerX[2] = p.windowWidth / 2 - 150;
   for (var i = 0; i <= 2; i++){
     players[i] = new player(playerX[i],playerY[i],i, playerArray[i]);
     players[i].takeCard(2);
