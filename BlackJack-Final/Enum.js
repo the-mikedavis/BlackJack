@@ -4,7 +4,7 @@ var Const = Object.freeze({
 	sliderMax : 10,
 	cardSpacing : 20,
 	maxBet : 100,
-	playerArray : ["Active Fund", "Passive Fund", "Dealer"],
+	playerArray : ["Active Firm", "Passive Firm", "Dealer"],
 	playerY : 25,
 	chipValues : [1,5,10,25,50],
 	cardValues : [

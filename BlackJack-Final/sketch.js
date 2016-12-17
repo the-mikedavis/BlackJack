@@ -104,7 +104,7 @@ playTheGame = function(whichPlayer){//all elements of the game which are constan
   }
 }
 
-//player function
+//player object
 player = function(x, y, playerCount, type){//player object
   var hand = [], handVals = [];
   var chipHand = 0;
