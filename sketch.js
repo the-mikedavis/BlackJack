@@ -13,7 +13,8 @@ var sketch = function (p) {
     };
     //set up with p5.js functions
     p.setup = function () {
-        p.createCanvas(1920, 800);  //width of the Flux.felt image
+        var canv = p.createCanvas(1920, 800);  //width of the Flux.felt image
+        canv.parent('drawing');
         Flux.handSlider = p.createSlider(1,Const.sliderMax,1);
         Flux.handSlider.position(Flux.playerX[0],20);
         p.frameRate(1);
@@ -339,4 +340,4 @@ var sketch = function (p) {
 
 };
 //sketch p5 object
-var myp5 = new p5(sketch);
+var myp5 = new p5(sketch, 'drawing');
