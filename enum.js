@@ -1,4 +1,4 @@
-var Const = Object.freeze({
+window.Const = Object.freeze({
 	deckSize : 52,
 	humanElement : 4,
 	sliderMax : 10,
@@ -15,7 +15,7 @@ var Const = Object.freeze({
 	]
 });
 
-var Flux = {
+window.Flux = {
 	cardPictures : [],
 	chipPictures : [],
 	players : [],
