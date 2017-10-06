@@ -2,14 +2,14 @@ var sketch = function (p) {
     //load all pictures
     p.preload = function(){
         for (var i = 0; i < Const.deckSize; i++){
-            Flux.cardPictures.push(p.loadImage("./assets/"+i+".png")); //import the cards
+            Flux.cardPictures.push(p.loadImage("/dist/blackjack/assets/"+i+".png")); //import the cards
         }
         for (i = 0; i < Const.chipValues.length; i++){
-            Flux.chipPictures.push(p.loadImage("./chips/Chip_"+i+".png"));  //import the chips
+            Flux.chipPictures.push(p.loadImage("/dist/blackjack/assets/Chip_"+i+".png"));  //import the chips
         }
-        Flux.cardback = p.loadImage("assets/cardback.png");
-        Flux.felt = p.loadImage("assets/green_felt.jpg");        //set the background to Flux.felt
-        Flux.chipQuintet = p.loadImage("assets/quintet.png");
+        Flux.cardback = p.loadImage("/dist/blackjack/assets/cardback.png");
+        Flux.felt = p.loadImage("/dist/blackjack/assets/green_felt.jpg");        //set the background to Flux.felt
+        Flux.chipQuintet = p.loadImage("/dist/blackjack/assets/quintet.png");
     };
     //set up with p5.js functions
     p.setup = function () {
